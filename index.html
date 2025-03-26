@@ -178,6 +178,45 @@ b {
     margin: 8px 0;
     border-radius: 5px;
 }
+.heading {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.blue-bg {
+    background-color: #d0e7ff; /* Light Blue */
+    border: 2px solid black;
+    padding: 8px;
+    margin: 8px 0;
+    border-radius: 5px;
+}
+
+.green-bg {
+    background-color: #c8e6c9; /* Light Green */
+    border: 2px solid black;
+    padding: 8px;
+    margin: 8px 0;
+    border-radius: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+}
+
+th, td {
+    border: 2px solid black;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #888; /* Darker for headers */
+    color: white;
+}
 
 
     </style>
@@ -355,6 +394,8 @@ function formatResponse(text) {
     let formattedText = "";
     let lines = text.split("\n").filter(line => line.trim() !== ""); // Remove empty lines
     let isAnswerSection = false;
+    let isTable = false;
+    let tableHTML = "";
 
     for (let line of lines) {
         if (line.includes("sebatiaA")) {
@@ -362,17 +403,49 @@ function formatResponse(text) {
             line = line.replace("sebatiaA", ""); // Remove marker
         }
 
-        let formattedLine = line
-            .replace(/\$(.*?)\$/g, "\\($1\\)")  // Inline math
-            .replace(/\$\$(.*?)\$\$/g, "\\[$1\\]"); // Block math
-
         let bgColorClass = isAnswerSection ? "green-bg" : "blue-bg";
 
-        if (line.startsWith("**") && line.endsWith("**")) {
-            formattedText += `<p class="heading ${bgColorClass}">${line.slice(2, -2)}</p>`; // Keep headings
-        } else {
-            formattedText += `<p class="${bgColorClass}">${formattedLine}</p>`;
+        // Detect Markdown-style table headers
+        if (line.match(/^\|.*\|$/) && !isTable) {
+            isTable = true;
+            tableHTML = `<table class="${bgColorClass}"><tr>`;
+            let headers = line.split("|").filter(item => item.trim() !== "");
+            headers.forEach(header => {
+                tableHTML += `<th>${header.trim()}</th>`;
+            });
+            tableHTML += "</tr>";
+            continue;
         }
+
+        // Detect table row (Markdown-style)
+        if (isTable && line.match(/^\|.*\|$/)) {
+            tableHTML += "<tr>";
+            let rowValues = line.split("|").filter(item => item.trim() !== "");
+            rowValues.forEach(value => {
+                tableHTML += `<td>${value.trim()}</td>`;
+            });
+            tableHTML += "</tr>";
+            continue;
+        }
+
+        // End of table
+        if (isTable && !line.match(/^\|.*\|$/)) {
+            isTable = false;
+            tableHTML += "</table>";
+            formattedText += tableHTML;
+        }
+
+        // Detect Headings
+        if (line.startsWith("**") && line.endsWith("**")) {
+            formattedText += `<p class="heading ${bgColorClass}">${line.slice(2, -2)}</p>`;
+        } else {
+            formattedText += `<p class="${bgColorClass}">${line}</p>`;
+        }
+    }
+
+    // In case table ends at last line
+    if (isTable) {
+        formattedText += "</table>";
     }
 
     setTimeout(() => {
@@ -385,6 +458,7 @@ function formatResponse(text) {
 }
 
 window.formatResponse = formatResponse;
+
 
 
 

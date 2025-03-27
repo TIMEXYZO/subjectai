@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Subject-Based Query</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js">
+</script>
+</head>
+<body>
+    <div class="container">
+        <h2>Ask AI a Subject-Specific Question</h2>
+        <form id="aiForm">
+            <label>Select Subject:</label>
+            <select id="subjectSelect">
+                <option value="physics">Physics</option>
+                <option value="chemistry">Chemistry</option>
+                <option value="maths" selected>Maths</option>
+            </select>
+            
+            <label>Select Chapters:</label>
+            <table id="chapterTable">
+    <tr>
+        <td><label>Sets <input type="checkbox" value="Sets"></label></td>
+        <td><label>Linear Inequalities <input type="checkbox" value="Linear Inequalities"></label></td>
+    </tr>
+    <tr>
+        <td><label>Relations and Functions <input type="checkbox" value="Relations and Functions"></label></td>
+        <td><label>Permutations and Combinations <input type="checkbox" value="Permutations and Combinations"></label></td>
+    </tr>
+    <tr>
+        <td><label>Trigonometric Functions <input type="checkbox" value="Trigonometric Functions"></label></td>
+        <td><label>Binomial Theorem <input type="checkbox" value="Binomial Theorem"></label></td>
+    </tr>
+    <tr>
+        <td><label>Principle of Mathematical Induction <input type="checkbox" value="Principle of Mathematical Induction"></label></td>
+        <td><label>Sequences and Series <input type="checkbox" value="Sequences and Series"></label></td>
+    </tr>
+    <tr>
+        <td><label>Complex Numbers and Quadratic Equations <input type="checkbox" value="Complex Numbers and Quadratic Equations"></label></td>
+        <td><label>Straight Lines <input type="checkbox" value="Straight Lines"></label></td>
+    </tr>
+</table>
+
+
+
+            <input type="text" id="userInput" placeholder="Enter your question..." required>
+            <button type="submit" id="Generate">Generate</button>
+        </form>
+        <div class="response-box">
+            <h3>Response:</h3>
+            <div id="responseText"></div>
+        </div>
+    </div>
+
+
+<script>
+window.MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+    },
+    svg: { fontCache: 'global' }
+};
+</script>
+<script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js">
+</script>
+
+
+
+    <script src="format.js"></script>
+          <script>
+        const chapters = {
+            maths: [
+                "Sets", "Relations and Functions", "Trigonometric Functions", "Principle of Mathematical Induction", "Complex Numbers and Quadratic Equations",
+                "Linear Inequalities", "Permutations and Combinations", "Binomial Theorem", "Sequences and Series", "Straight Lines",
+                "Conic Sections", "Introduction to Three Dimensional Geometry", "Limits and Derivatives", "Mathematical Reasoning", "Statistics", "Probability"
+            ],
+            chemistry: [
+                "Some Basic Concepts of Chemistry", "Structure of Atom", "Classification of Elements and Periodicity in Properties",
+                "Chemical Bonding and Molecular Structure", "Thermodynamics", "Equilibrium", "Redox Reactions",
+                "Organic Chemistry - Some Basic Principles and Techniques", "Hydrocarbons"
+            ],
+            physics: [
+                "Units and Measurements", "Motion in a Straight Line", "Motion in a Plane", "Laws of Motion", "Work, Energy, and Power",
+                "System of Particles and Rotational Motion", "Gravitation", "Mechanical Properties of Solids", "Mechanical Properties of Fluids",
+                "Thermal Properties of Matter", "Thermodynamics", "Kinetic Theory", "Oscillations", "Waves"
+            ]
+        };
+
+        document.getElementById("subjectSelect").addEventListener("change", function () {
+            const subject = this.value;
+            const chapterTable = document.getElementById("chapterTable");
+            chapterTable.innerHTML = ""; // Clear previous content
+
+            if (!subject || !chapters[subject]) return;
+
+            let rows = "";
+            for (let i = 0; i < chapters[subject].length; i += 2) {
+                const col1 = chapters[subject][i] || "";
+                const col2 = chapters[subject][i + 1] || "";
+                rows += `
+                    <tr>
+                        <td><label>${col1} <input type="checkbox" value="${col1}"></label></td>
+                        <td><label>${col2} <input type="checkbox" value="${col2}"></label></td>
+                    </tr>
+                `;
+            }
+
+            chapterTable.innerHTML = rows;
+        });
+
+document.getElementById("aiForm").addEventListener("submit", function (event) {
+    event.preventDefault(); // Prevent page reload
+
+    const subject = document.getElementById("subjectSelect").value;
+    const userInput = document.getElementById("userInput").value.trim();
+    const selectedChapters = [];
+
+    document.querySelectorAll("#chapterTable input:checked").forEach(checkbox => {
+        selectedChapters.push(checkbox.value);
+    });
+
+    if (!userInput || selectedChapters.length === 0) {
+        document.getElementById("responseText").innerHTML = "<p class='error'>Please enter a question and select at least one chapter.</p>";
+        return;
+    }else{
+        document.getElementById("responseText").innerHTML = "<p class='error'>Generating...Please Wait...</p>";
+    }
+
+    const apiKey = "AIzaSyAoYNb5MO70jFV3Rn2CVXT9Jps29q1fTg8"; // Replace with your actual API key
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+    const requestBody = {
+        contents: [
+            {
+                parts: [
+                    {
+                        text: `Subject: ${subject}\nChapters: ${selectedChapters.join(", ")}\nQuestion: ${userInput} of class 11, and only provide 20 mcq question and nothing else no comment no greeting also properly format fractions, exponents, etc if any, dont highlight question with * or **, especially take care of any dollar sign in any Mathematical question to be formatted properly avoid these type of formats How many grams of $H_2O$ are produced when 2.0 g of $H_2$ reacts with 16.0 g of $O_2$? or If the root mean square velocity ($v_{rms}$) of gas molecules at temperature T is given by $v_{rms} = \sqrt{\frac{3RT}{M}}$, and the temperature is increased to 4 times its initial value, by what factor does the $v_{rms}$ change?, i am using mathjax in html to format questions, so make questions using mathjax formatting techniques if required, also make heading started with ** and ended with ** , also ignore any full stop marks, also provide answer as Answer array = [2,4,6, .....] to all questions separately in very end and start the answer section using the word sebatiaA, and the mcq options should be written as html like <option>option</option> and each option has a checkbox written as <input type="ratio" value="respective value as 1,2,3..." name="it should be 1 if ques 1, 2 if ques 2 in all its four options">, all options should be treated as 80 numbers, where ques 1 has 1234 options, 2 has 5678 options etc, and the option should be first then after it the html input , also add a button named sumbit as <button class="mcqsumbit" id="mcqed">Submit</button>`
+                    }
+                ]
+            }
+        ]
+    };
+
+    fetch(apiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+    })
+    .then(response => response.json())
+.then(data => {
+    let aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response received.";
+
+    // Format the response using the global function
+    let formattedResponse = formatResponse(aiResponse);
+    document.getElementById("responseText").innerHTML = formattedResponse;
+    attachMCQButtonListener();
+})
+
+
+    .catch(error => {
+        document.getElementById("responseText").innerHTML = "<p class='error'>Error fetching response.</p>";
+        console.error("Fetch error:", error);
+    });
+
+});
+        // Load initial subject chapters
+        document.getElementById("subjectSelect").dispatchEvent(new Event("change"));
+
+function handleMCQSubmission() {
+    let selectedAnswers = [];
+
+    // Collect selected radio button values
+    document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+        selectedAnswers.push(parseInt(radio.value)); // Convert to integer
+    });
+
+    // Find the answer array in the response text
+    let responseText = document.getElementById("responseText").textContent;
+    let match = responseText.match(/Answer\s*array\s*=\s*\[([\d,\s]+)\]/);
+
+    if (!match) {
+        alert("Error: No answer array found in the response.");
+        return;
+    }
+
+    let correctAnswers = match[1].split(",").map(num => parseInt(num.trim())); // Convert to array of numbers
+
+    // Compare selected answers with correct ones
+    let score = selectedAnswers.filter(answer => correctAnswers.includes(answer)).length;
+    let totalQuestions = correctAnswers.length;
+
+    alert(`Your Score: ${score} / ${totalQuestions}`);
+}
+
+// Attach event listener when the MCQ button appears
+function attachMCQButtonListener() {
+    let button = document.getElementById("mcqed");
+    if (button) {
+        button.addEventListener("click", handleMCQSubmission);
+    } else {
+        setTimeout(attachMCQButtonListener, 500); // Retry every 500ms if button isn't there yet
+    }
+}
+
+// Call this function after response is loaded
+
+
+    </script>
+</body>
+</html>
